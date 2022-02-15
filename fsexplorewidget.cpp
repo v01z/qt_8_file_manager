@@ -3,14 +3,21 @@
 #include <QRegExpValidator>
 #include <QDebug>
 
-FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget(parent), model(nullptr)
+FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
+    gridLay{ new QGridLayout(this) },
+    tree{ new QTreeView(this) },
+    mainPath { nullptr },
+    disckSelBox { nullptr },
+    lePath { new QLineEdit(this) },
+    tbGo { new QToolButton(this) },
+    model { nullptr },
+    currentPath {}
+
 {
     parent->setMinimumSize(500,600);
 
-    gridLay = new QGridLayout(this);
     this->setLayout(gridLay);
 
-    tree = new QTreeView(this);
     gridLay->addWidget(tree, 1, 0, 10, 10);
 
     //Юзер кликает по дереву каталогов
@@ -18,7 +25,6 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget(parent), model(nullp
 
     setMinimumSize(500, 600);
 
-    lePath = new QLineEdit(this);
     gridLay->addWidget(lePath,0, 2, 1, 1);
 
     //Удалим слеш в начале пути
@@ -28,7 +34,6 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget(parent), model(nullp
     //Юзер нажал 'Enter' в поле LineEdit
     connect(lePath, SIGNAL(returnPressed()), this, SLOT(goPath()));
 
-    tbGo = new QToolButton(this);
     gridLay->addWidget(tbGo, 0, 3, 1, 1);
     tbGo->setText("Go");
     connect(tbGo, SIGNAL(clicked()), this, SLOT(goPath()));
@@ -92,11 +97,6 @@ void FSExploreWidget::setNewModel(QStandardItemModel *newmodel)
 
 void FSExploreWidget::rebuildModel(QString str)
 {
-
-    if ((str.length() > 1) && (str[1] == '/'))
-            str.remove(1, 1);
-
-
    QStandardItemModel *model = new QStandardItemModel(this);
 
    QList<QStandardItem*> items;
@@ -145,14 +145,23 @@ void FSExploreWidget::rebuildModel(QString str)
 
 void FSExploreWidget::goPath()
 {
-    QString path { rootDir + lePath->text() };
+    currentPath =  rootDir + lePath->text();
 
-    if (QDir(path).exists())
-        rebuildModel(path);
+    if (currentPath.length() > 1)
+#if !defined(__unix__) //windoze
+        if (currentPath[1] == '\\')
+#else //(__unix__)
+        if(currentPath[1] == '/')
+#endif
+              currentPath.remove(1, 1);
+
+    if (QDir(currentPath).exists())
+        rebuildModel(currentPath);
     else
     {
         lePath->clear();
-        rebuildModel(rootDir);
+        currentPath = rootDir;
+        rebuildModel(currentPath);
     }
 }
 
@@ -163,26 +172,8 @@ void FSExploreWidget::updatePath()
 
     QVariant data = tree->model()->data(index);
 
-    QString tempPath { lePath->text() + rootDir + data.toString() };
+    QString tempPath { currentPath + rootDir + data.toString() };
 
     if (QDir(tempPath).exists())
         lePath->setText(tempPath);
-    /*
-    else
-        if (QDir(rootDir + data.toString()).exists())
-                lePath->setText(rootDir + data.toString());
-                */
-
-//    lePath->setText(lePath->text() + rootDir + data.toString());
-
-//    qDebug () << tree->rootIndex().data().toString();
-//    QModelIndex rootIndex = tree->rootIndex();
-    /*
-    QModelIndex rootIndex = tree->
-    QVariant rootData = tree->model()->data(rootIndex);
-    qDebug() << rootData.toString();
-    */
-
-
-//	while (tree->model()->data(0).toString())
 }

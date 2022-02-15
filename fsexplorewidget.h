@@ -36,7 +36,7 @@ private:
    QLineEdit *lePath;
    QToolButton *tbGo;
    QStandardItemModel *model;
-//   QString currentPath;
+   QString currentPath;
 
 #if defined (__unix__)
    inline static const QString rootDir { '/' };
