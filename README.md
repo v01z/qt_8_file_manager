@@ -1,1 +1,1 @@
-# qt_8_file_manager
+# qt_8
