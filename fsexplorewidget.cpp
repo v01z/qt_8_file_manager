@@ -10,6 +10,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     disckSelBox { nullptr },
     lePath { new QLineEdit(this) },
     tbGo { new QToolButton(this) },
+    tbFind { new QToolButton(this) },
     model { nullptr },
     currentPath {}
 
@@ -38,6 +39,9 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     tbGo->setText("Go");
     connect(tbGo, SIGNAL(clicked()), this, SLOT(goPath()));
 
+    gridLay->addWidget(tbFind, 0, 4, 1, 1);
+    tbFind->setText("Find here");
+    connect(tbFind, SIGNAL(clicked()), this, SLOT(showFindWindow()));
 
    if(QSysInfo::productType() == "windows")
    {
@@ -84,7 +88,8 @@ void FSExploreWidget::chgDisk(int index)
 
 void FSExploreWidget::goMainPath()
 {
-   rebuildModel(rootDir);
+   currentPath = rootDir;
+   rebuildModel(currentPath);
    lePath->clear();
 }
 
@@ -176,4 +181,9 @@ void FSExploreWidget::updatePath()
 
     if (QDir(tempPath).exists())
         lePath->setText(tempPath);
+}
+
+void FSExploreWidget::showFindWindow()
+{
+
 }

@@ -35,6 +35,7 @@ private:
    QComboBox *disckSelBox;
    QLineEdit *lePath;
    QToolButton *tbGo;
+   QToolButton *tbFind;
    QStandardItemModel *model;
    QString currentPath;
 
@@ -49,6 +50,7 @@ private slots:
    void goMainPath();
    void goPath();
    void updatePath();
+   void showFindWindow();
 
 protected:
 };
