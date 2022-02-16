@@ -13,6 +13,7 @@
 #include <QToolButton>
 #include <QListView>
 #include <QTabWidget>
+#include <QLabel>
 
 //Q_PROPERTY(QStandardItemModel *model READ getCurrentModel WRITE setNewModel)
 
@@ -46,6 +47,7 @@ private:
    QToolButton *tbFind;
    QStandardItemModel *model;
    QString currentPath;
+   QLabel *dirLabel;
 
 #if defined (__unix__)
    inline static const QString rootDir { '/' };
@@ -59,6 +61,9 @@ private slots:
    void goPath();
    void updatePath();
    void findFile();
+   void on_tabWidgetArea_changed(int);
+   //QString removeOneSlash(QString&);
+  // void on_lePath_text_changed(QString&);
 
 protected:
 };

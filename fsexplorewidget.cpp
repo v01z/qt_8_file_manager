@@ -2,9 +2,10 @@
 #include <QDir>
 #include <QRegExpValidator>
 #include <QDebug>
-#include <QLabel>
 // 8
 //#include <QTabWidget> //пока здесь
+#include <QDirIterator>
+
 
 FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     tabWidgetArea { new QTabWidget(this) },
@@ -21,7 +22,8 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     tbGo { new QToolButton(this) },
     tbFind { new QToolButton(this) },
     model { nullptr },
-    currentPath {}
+    currentPath {},
+    dirLabel{ new QLabel(this) }
 
 {
     parent->setMinimumSize(500,600);
@@ -45,6 +47,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 
     //Юзер нажал 'Enter' в поле LineEdit
     connect(lePath, SIGNAL(returnPressed()), this, SLOT(goPath()));
+    //connect(lePath, SIGNAL(textChanged(QString&)), this, SLOT(on_lePath_text_changed(QString&)));
 
     exploreGridLay->addWidget(tbGo, 0, 3, 1, 1);
     tbGo->setText("Go");
@@ -89,25 +92,31 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     //******************* Init Find Tab ****************************
 
     tabWidgetArea->addTab(tabFind, "Find file");
+    //connect(tabWidgetArea, SIGNAL(currentChanged(int)), this, SLOT
+    //connect(tabWidgetArea, QTabWidget::currentChanged(int indx), this, [&indx]() { qDebug() << indx;} );
+    connect(tabWidgetArea, SIGNAL(currentChanged(int)), this, SLOT(on_tabWidgetArea_changed(int)));
     tabFind->setLayout(findGridLay);
-    findGridLay->addWidget(findListView, 1, 0, 10, 10);
+    findGridLay->addWidget(findListView, 2, 0, 10, 10);
+
+    QLabel *infoDirLabel = new QLabel(this);
+    infoDirLabel->setText("We will search in: ");
+    findGridLay->addWidget(infoDirLabel, 0, 0, 1, 1);
+
+    findGridLay->addWidget(dirLabel, 0, 1, 1, 1);
 
     QLabel *findLabel = new QLabel(this);
     findLabel->setText("Enter file name:");
 
-    findGridLay->addWidget(findLabel, 0, 0, 1, 1);
+    findGridLay->addWidget(findLabel, 1, 0, 1, 1);
 
-    findGridLay->addWidget(leFileName, 0, 1, 1, 1);
+    findGridLay->addWidget(leFileName, 1, 1, 1, 1);
 
-    //'Return' pressed
     connect(leFileName, SIGNAL(returnPressed()), this, SLOT(findFile()));
+    //connect(leFileName, SIGNAL(textChanged(QString&)), this, SLOT(on_textUpdated(QString&)));
 
-    findGridLay->addWidget(tbFind, 0, 2, 1, 1);
+    findGridLay->addWidget(tbFind, 1, 2, 1, 1);
     tbFind->setText("Find");
     connect(tbFind, SIGNAL(clicked()), this, SLOT(findFile()));
-
-
-
 }
 
 void FSExploreWidget::chgDisk(int index)
@@ -215,5 +224,83 @@ void FSExploreWidget::updatePath()
 
 void FSExploreWidget::findFile()
 {
+    if (currentPath.isEmpty())
+            currentPath = rootDir;
+
+    QDir upperDir { currentPath };
+
+    if (!upperDir.exists())
+            return;
+
+    QString fileNameToFind { leFileName->text() };
+    if (fileNameToFind.isEmpty())
+        return;
+
+    QFileInfoList hitList;
+    QString tempFileName;
+
+    qDebug() << "here";
+
+        QDirIterator dirIterator(currentPath, QDirIterator::Subdirectories);
+
+        int debug{};
+        // Iterate through the directory using the QDirIterator
+        while (dirIterator.hasNext()) {
+            //QString filename = it.next();
+            qDebug() << dirIterator.path();
+            qDebug() << debug++;
+            //QString filename = dirIterator.next();
+            tempFileName = dirIterator.next();
+            QFileInfo file(tempFileName);
+
+            if (file.isDir()) { // Check if it's a dir
+                continue;
+            }
+
+            // If the filename contains target string - put it in the hitlist
+            if (file.fileName().contains(fileNameToFind, Qt::CaseInsensitive)) {
+                hitList.append(file);
+            }
+        }
+
+        foreach (QFileInfo hit, hitList) {
+            qDebug() << hit.absoluteFilePath();
+        }
+
+
+
 
 }
+
+void FSExploreWidget::on_tabWidgetArea_changed(int index)
+{
+//    qDebug() << index;
+    if (index == 1)
+    {
+        if (currentPath.isEmpty())
+                currentPath = rootDir;
+
+        dirLabel->setText(currentPath);
+
+    }
+}
+
+/*
+QString FSExploreWidget::removeOneSlash(QString &str)
+{
+    if (str.length() > 1)
+#if !defined(__unix__) //windoze
+        if (currentPath[1] == '\\')
+#else //(__unix__)
+        if(str[1] == '/')
+#endif
+              str.remove(1, 1);
+
+    return str;
+}
+
+void FSExploreWidget::on_lePath_text_changed(QString &str)
+{
+   lePath->setText(removeOneSlash(str));
+}
+*/
