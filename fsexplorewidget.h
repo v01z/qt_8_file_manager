@@ -14,6 +14,8 @@
 #include <QListView>
 #include <QTabWidget>
 #include <QLabel>
+#include <QThread>
+#include <QDirIterator>
 
 class FSExploreWidget : public QWidget
 {
@@ -24,6 +26,19 @@ public:
    void setNewExploreModel(QStandardItemModel*);
    void rebuildExploreModel(QString);
    void rebuildFindModel(QString);
+
+   friend class ThreadRunner;
+
+   class ThreadMaker : public QThread
+   {
+    private:
+        FSExploreWidget *outerObj;
+        QString path;
+    public:
+        ThreadMaker(FSExploreWidget*, QString&);
+        void run();
+   };
+
 private:
    QTabWidget *tabWidgetArea;
    QWidget *tabExplore;
@@ -32,7 +47,6 @@ private:
    QGridLayout *findGridLay;
    QTreeView *exploreTreeView;
    QListView *findListView;
-
    QPushButton *mainPath;
    QComboBox *disckSelBox;
    QLineEdit *lePath;
@@ -43,6 +57,7 @@ private:
    QStandardItemModel *modelFind;
    QString currentPath;
    QLabel *dirLabel;
+
 
 #if defined (__unix__)
    inline static const QString rootDir { '/' };
@@ -59,6 +74,18 @@ private slots:
    void on_tabWidgetArea_changed(int);
 
 protected:
+};
+
+class ThreadRunner : public QThread
+{
+private:
+    //FSExploreWidget *fseExploreWidget;
+    FSExploreWidget *outerObj;
+    QString path;
+public:
+    ThreadRunner(FSExploreWidget*, QString&);
+    void run();
+
 };
 
 #endif // FSEXPLOREWIDGET_H
