@@ -15,22 +15,12 @@
 #include <QTabWidget>
 #include <QLabel>
 
-//Q_PROPERTY(QStandardItemModel *model READ getCurrentModel WRITE setNewModel)
-
 class FSExploreWidget : public QWidget
 {
    Q_OBJECT
 public:
    explicit FSExploreWidget(QWidget *parent = nullptr);
    void clearTree();
-   /*
-   QStandardItemModel *getCurrentExploreModel()const
-   {
-       return modelExplore;
-
-   }
-   */
-
    void setNewExploreModel(QStandardItemModel*);
    void rebuildExploreModel(QString);
    void rebuildFindModel(QString);
@@ -67,8 +57,6 @@ private slots:
    void updatePath();
    void findFile();
    void on_tabWidgetArea_changed(int);
-   //QString removeOneSlash(QString&);
-  // void on_lePath_text_changed(QString&);
 
 protected:
 };

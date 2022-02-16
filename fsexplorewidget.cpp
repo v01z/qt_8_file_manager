@@ -1,10 +1,8 @@
 ﻿#include "fsexplorewidget.h"
 #include <QDir>
 #include <QRegExpValidator>
-#include <QDebug>
-// 8
-//#include <QTabWidget> //пока здесь
 #include <QDirIterator>
+#include <QDebug>
 
 
 FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
@@ -21,15 +19,13 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     leFileName{ new QLineEdit(this) },
     tbGo { new QToolButton(this) },
     tbFind { new QToolButton(this) },
-    //modelExplore { nullptr },
     modelExplore { new QStandardItemModel(this) },
-    //modelFind { nullptr },
     modelFind { new QStandardItemModel(this) },
     currentPath {},
     dirLabel{ new QLabel(this) }
 
 {
-    parent->setMinimumSize(500,600);
+    parent->setMinimumSize(800,600);
     this->setMinimumSize(parent->minimumSize());
     tabWidgetArea->setMinimumSize(parent->minimumSize());
 
@@ -50,7 +46,6 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 
     //Юзер нажал 'Enter' в поле LineEdit
     connect(lePath, SIGNAL(returnPressed()), this, SLOT(goPath()));
-    //connect(lePath, SIGNAL(textChanged(QString&)), this, SLOT(on_lePath_text_changed(QString&)));
 
     exploreGridLay->addWidget(tbGo, 0, 3, 1, 1);
     tbGo->setText("Go");
@@ -114,7 +109,6 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     findGridLay->addWidget(leFileName, 1, 1, 1, 1);
 
     connect(leFileName, SIGNAL(returnPressed()), this, SLOT(findFile()));
-    //connect(leFileName, SIGNAL(textChanged(QString&)), this, SLOT(on_textUpdated(QString&)));
 
     findGridLay->addWidget(tbFind, 1, 2, 1, 1);
     tbFind->setText("Find");
@@ -143,11 +137,7 @@ void FSExploreWidget::setNewExploreModel(QStandardItemModel *newModelExplore)
 
 void FSExploreWidget::rebuildExploreModel(QString str)
 {
-    modelExplore->clear();
-//   QStandardItemModel *modelExplore = new QStandardItemModel(this);
-//   modelExplore = new QStandardItemModel(this);
-
-
+   modelExplore->clear();
 
    QList<QStandardItem*> items;
    items.append(new QStandardItem(QIcon(QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon)), str));
@@ -231,12 +221,7 @@ void FSExploreWidget::updatePath()
 void FSExploreWidget::findFile()
 {
     if (currentPath.isEmpty())
-            currentPath = rootDir; //mb we should open first tab
-
-    /*
-    if (!(QDir(currentPath)).exists())
-            return;
-            */
+            currentPath = rootDir;
 
     QString fileNameToFind { leFileName->text() };
     if (fileNameToFind.isEmpty())
@@ -248,7 +233,6 @@ void FSExploreWidget::findFile()
 
 void FSExploreWidget::on_tabWidgetArea_changed(int index)
 {
-//    qDebug() << index;
     if (index == 1)
     {
         if (currentPath.isEmpty())
@@ -259,72 +243,32 @@ void FSExploreWidget::on_tabWidgetArea_changed(int index)
     }
 }
 
-/*
-QString FSExploreWidget::removeOneSlash(QString &str)
-{
-    if (str.length() > 1)
-#if !defined(__unix__) //windoze
-        if (currentPath[1] == '\\')
-#else //(__unix__)
-        if(str[1] == '/')
-#endif
-              str.remove(1, 1);
-
-    return str;
-}
-
-void FSExploreWidget::on_lePath_text_changed(QString &str)
-{
-   lePath->setText(removeOneSlash(str));
-}
-*/
-
 void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 {
     modelFind->clear();
-//    QStandardItemModel *modelFind
-    QFileInfoList hitList;
     QString tempFileName;
-    QList<QStandardItem*> items;
-    QList<QStandardItem*> foundFilesList;
-    QStringList list;
-
 
     QDirIterator dirIterator(currentPath, QDirIterator::Subdirectories);
     size_t i{};
 
-    // Iterate through the directory using the QDirIterator
     while (dirIterator.hasNext())
     {
-        qDebug() << dirIterator.path();
         tempFileName = dirIterator.next();
         QFileInfo fileInfo { tempFileName };
 
         if (fileInfo.isDir())
-        { // Check if it's a dir
+        { // Директории мы не ищем
             continue;
         }
 
-        // If the filename contains target string - put it in the hitlist
         if (fileInfo.fileName().contains(fileNameToFind, Qt::CaseInsensitive))
         {
-            hitList.append(fileInfo);
             QStandardItem *foundFile
                 { new QStandardItem(QIcon(QApplication
-                    ::style()->standardIcon(QStyle::SP_FileIcon)), list.at(i++))};
-            foundFilesList.append(foundFile);
+                    ::style()->standardIcon(QStyle::SP_FileIcon)),fileInfo.filePath())};
+            modelFind->appendRow(foundFile);
         }
     }
-    items.at(0)->appendRows(foundFilesList);
-    //setnewfindmodel
+
     findListView->setModel(modelFind);
-    //
-
-    foreach (QFileInfo hit, hitList) {
-        qDebug() << hit.absoluteFilePath();
-    //            findListView->a
-    }
-
-
-
 }
