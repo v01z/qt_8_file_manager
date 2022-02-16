@@ -41,6 +41,7 @@ private:
    QPushButton *mainPath;
    QComboBox *disckSelBox;
    QLineEdit *lePath;
+   QLineEdit *leFileName;
    QToolButton *tbGo;
    QToolButton *tbFind;
    QStandardItemModel *model;
@@ -57,7 +58,7 @@ private slots:
    void goMainPath();
    void goPath();
    void updatePath();
-   void expandFindGUI();
+   void findFile();
 
 protected:
 };

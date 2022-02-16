@@ -2,6 +2,7 @@
 #include <QDir>
 #include <QRegExpValidator>
 #include <QDebug>
+#include <QLabel>
 // 8
 //#include <QTabWidget> //пока здесь
 
@@ -11,11 +12,12 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     tabFind { new QWidget(this) },
     exploreGridLay{ new QGridLayout(this) },
     findGridLay { new QGridLayout(this) },
-    findListView { new QListView(this) },
     exploreTreeView{ new QTreeView(this) },
+    findListView { new QListView(this) },
     mainPath { nullptr },
     disckSelBox { nullptr },
     lePath { new QLineEdit(this) },
+    leFileName{ new QLineEdit(this) },
     tbGo { new QToolButton(this) },
     tbFind { new QToolButton(this) },
     model { nullptr },
@@ -23,17 +25,14 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 
 {
     parent->setMinimumSize(500,600);
-
     this->setMinimumSize(parent->minimumSize());
     tabWidgetArea->setMinimumSize(parent->minimumSize());
+
+    //******************* Init Explorer Tab *************************
 
     tabWidgetArea->addTab(tabExplore, "Explore file system");
     tabExplore->setLayout(exploreGridLay);
     exploreGridLay->addWidget(exploreTreeView, 1, 0, 10, 10);
-
-    tabWidgetArea->addTab(tabFind, "Find file");
-    tabFind->setLayout(findGridLay);
-    findGridLay->addWidget(findListView, 0, 0, 10, 10);
 
     //Юзер кликает по дереву каталогов
     connect(exploreTreeView, SIGNAL(clicked(QModelIndex)), this, SLOT(updatePath()));
@@ -50,15 +49,6 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     exploreGridLay->addWidget(tbGo, 0, 3, 1, 1);
     tbGo->setText("Go");
     connect(tbGo, SIGNAL(clicked()), this, SLOT(goPath()));
-
-    exploreGridLay->addWidget(tbFind, 0, 4, 1, 1);
-    tbFind->setText("Find here");
-    connect(tbFind, SIGNAL(clicked()), this, SLOT(showFindWindow()));
-
-    /// 8
-//    addTab(this);
-  //  exploreGridLay->addWidget(findListView, 2, 0, 10, 10);
-    ///
 
    if(QSysInfo::productType() == "windows")
    {
@@ -91,11 +81,33 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
        mainPath = new QPushButton(this);
        mainPath->setText(rootDir);
        exploreGridLay->addWidget(mainPath, 0, 0, 1, 2);
-       //connect(mainPath, SIGNAL(clicked()), this, SLOT(goMainPath()));
        connect(mainPath, SIGNAL(clicked()), this, SLOT(goMainPath()));
 
        rebuildModel(rootDir);
     }
+
+    //******************* Init Find Tab ****************************
+
+    tabWidgetArea->addTab(tabFind, "Find file");
+    tabFind->setLayout(findGridLay);
+    findGridLay->addWidget(findListView, 1, 0, 10, 10);
+
+    QLabel *findLabel = new QLabel(this);
+    findLabel->setText("Enter file name:");
+
+    findGridLay->addWidget(findLabel, 0, 0, 1, 1);
+
+    findGridLay->addWidget(leFileName, 0, 1, 1, 1);
+
+    //'Return' pressed
+    connect(leFileName, SIGNAL(returnPressed()), this, SLOT(findFile()));
+
+    findGridLay->addWidget(tbFind, 0, 2, 1, 1);
+    tbFind->setText("Find");
+    connect(tbFind, SIGNAL(clicked()), this, SLOT(findFile()));
+
+
+
 }
 
 void FSExploreWidget::chgDisk(int index)
@@ -163,7 +175,7 @@ void FSExploreWidget::rebuildModel(QString str)
    items.at(0)->appendRows(files);
    setNewModel(model);
 
-   model->setHeaderData(0, Qt::Horizontal, "File system exploreTreeView");
+   model->setHeaderData(0, Qt::Horizontal, "File system tree");
 }
 
 void FSExploreWidget::goPath()
@@ -201,7 +213,7 @@ void FSExploreWidget::updatePath()
         lePath->setText(tempPath);
 }
 
-void FSExploreWidget::expandFindGUI()
+void FSExploreWidget::findFile()
 {
 
 }
