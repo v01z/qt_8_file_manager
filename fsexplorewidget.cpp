@@ -22,7 +22,6 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     modelFind { new QStandardItemModel(this) },
     currentPath {},
     dirLabel{ new QLabel(this) },
-    fileNameToFind{},
     threadRunner { nullptr }
 
 {
@@ -224,13 +223,11 @@ void FSExploreWidget::findFile()
     if (currentPath.isEmpty())
             currentPath = rootDir;
 
-    //QString fileNameToFind { leFileName->text() };
-    fileNameToFind = leFileName->text();
+    QString fileNameToFind { leFileName->text() };
     if (fileNameToFind.isEmpty())
         return;
 
-    //rebuildFindModel(fileNameToFind);
-    rebuildFindModel();
+    rebuildFindModel(fileNameToFind);
 
 }
 
@@ -246,88 +243,22 @@ void FSExploreWidget::on_tabWidgetArea_changed(int index)
     }
 }
 
-//void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
-void FSExploreWidget::rebuildFindModel()
+void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 {
     modelFind->clear();
-    /*
-    QString tempFileName;
 
-    QDirIterator dirIterator(currentPath, QDirIterator::Subdirectories);
-    size_t i{};
-
-    while (dirIterator.hasNext())
-    {
-        tempFileName = dirIterator.next();
-        QFileInfo fileInfo { tempFileName };
-
-        if (fileInfo.fileName().contains(fileNameToFind, Qt::CaseInsensitive))
-        {
-            QStandardItem *foundItem;
-            if (fileInfo.isDir())
-            {
-             foundItem = std::move
-                ( new QStandardItem(QIcon(QApplication
-                    ::style()->standardIcon(QStyle::SP_DirIcon)),fileInfo.filePath()));
-            }
-            else
-            {
-             foundItem = std::move
-                ( new QStandardItem(QIcon(QApplication
-                    ::style()->standardIcon(QStyle::SP_FileIcon)),fileInfo.filePath()));
-            }
-
-            modelFind->appendRow(foundItem);
-
-        }
-    }
-
-    */
-//    ThreadRunner threadRunner(currentPath, fileNameToFind);
-
-    //threadRunner = new ThreadRunner(currentPath, fileNameToFind);
     threadRunner = QSharedPointer<ThreadRunner>::create(currentPath, fileNameToFind);
-//    threadRunner->setDirPath(currentPath);
- //   threadRunner->setFileNameToSearch(fileNameToFind);
-    //connect(threadRunner, SIGNAL(threadRunner->fileIsFound(QFileInfo)), this, SLOT(printEventFromThread(QFileInfo)));
-    //connect(threadRunner, SIGNAL(threadRunner->fileIsFound(QFileInfo)), this, SLOT(printEventFromThread(QFileInfo)));
-    //connect(threadRunner, SIGNAL(threadRunner->fileIsFound(QFileInfo)), this, SLOT(printEventFromThread(QFileInfo)));
 
-    //connect(threadRunner.get(), SIGNAL(fileIsFound(QFileInfo)), this, SLOT(printEventFromThread(QFileInfo)));
-    /*
-    connect(threadRunner.get(), SIGNAL(fileIsFound(QFileInfo)), this, SLOT(printEventFromThread(QFileInfo)),
-            Qt::DirectConnection);
-            */
     connect(threadRunner.get(), SIGNAL(fileIsFound(QFileInfo)), this, SLOT(addItemToModelFind(QFileInfo)),
             Qt::DirectConnection);
 
     connect(threadRunner.get(), SIGNAL(searchFinished()), this, SLOT(applyFoundResultToView()));
 
-   // connect(threadRunner, SIGNAL(threadRunner->foundFile(QFileInfo)), this, SLOT(printEventFromThread(QFileInfo)));
 
-    //threadRunner = new ThreadRunner(currentPath, fileNameToFind);
     threadRunner->start();
     qDebug() << "Hello from outer " << thread()->currentThreadId();
-    //!!!!!
-    //threadRunner->wait();
-    //!!!!!
 
     findListView->setModel(modelFind);
-    /*
-//    ThreadMaker *threadMaker = new ThreadMaker(this);
-    ThreadMaker threadMaker { this, fileNameToFind };
-//    ThreadRunner threadMaker { this, fileNameToFind };
-//    threadMaker.run();
-    threadMaker.start();
-    */
-    /*
-    threadMaker.wait();
-    */
-}
-
-void FSExploreWidget::printEventFromThread(QFileInfo fileInfo)
-{
-    qDebug() << "from main thread message: " << fileInfo.filePath();
 }
 
 void FSExploreWidget::addItemToModelFind(QFileInfo fileInfo)
@@ -356,62 +287,26 @@ void FSExploreWidget::applyFoundResultToView()
     findListView->setModel(modelFind);
 }
 
-/*
-ThreadRunner::ThreadRunner(FSExploreWidget *outer, QString &path)
-    : outerObj { outer }, path { path } {}
-    */
 ThreadRunner::ThreadRunner(QString &path, QString &name):
     dirPath { path }, fileNameToSearch { name } {}
 
 void ThreadRunner::run()
 {
-    //outerObj->modelFind->clear();
-    QString tempFileName;
 
     QDirIterator dirIterator(dirPath, QDirIterator::Subdirectories);
-    //size_t i{};
 
     while (dirIterator.hasNext())
     {
-        tempFileName = dirIterator.next();
-        QFileInfo fileInfo { tempFileName };
 
-
+        QFileInfo fileInfo { dirIterator.next() };
 
         if (fileInfo.fileName().contains(fileNameToSearch, Qt::CaseInsensitive))
         {
-            /*
-            QStandardItem *foundItem;
-
-            if (fileInfo.isDir())
-            {
-             foundItem = std::move
-                ( new QStandardItem(QIcon(QApplication
-                    ::style()->standardIcon(QStyle::SP_DirIcon)),fileInfo.filePath()));
-
-            }
-            else
-            {
-             foundItem = std::move
-                ( new QStandardItem(QIcon(QApplication
-                    ::style()->standardIcon(QStyle::SP_FileIcon)),fileInfo.filePath()));
-            }
-            */
 
            emit fileIsFound(fileInfo);
-            qDebug() << "found " << fileInfo.filePath();
-           //outerObj-> modelFind->appendRow(foundItem);
         }
     }
     emit searchFinished();
 
     qDebug() << "Hello from inner" << thread()->currentThreadId();
-    //outerObj->findListView->setModel(outerObj->modelFind);
 }
-
-/*
-QFileInfo ThreadRunner::foundFile(QFileInfo info)
-{
-   return info;
-}
-*/

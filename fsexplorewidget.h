@@ -42,7 +42,7 @@ public:
    void clearTree();
    void setNewExploreModel(QStandardItemModel*);
    void rebuildExploreModel(QString);
-   void rebuildFindModel();
+   void rebuildFindModel(QString);
 
 private:
    QTabWidget *tabWidgetArea;
@@ -62,7 +62,6 @@ private:
    QStandardItemModel *modelFind;
    QString currentPath;
    QLabel *dirLabel;
-   QString fileNameToFind;
    QSharedPointer<ThreadRunner> threadRunner;
 
 #if defined (__unix__)
@@ -79,7 +78,6 @@ private slots:
    void findFile();
    void on_tabWidgetArea_changed(int);
 
-   void printEventFromThread(QFileInfo);
    void addItemToModelFind(QFileInfo);
    void applyFoundResultToView();
 
