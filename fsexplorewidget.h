@@ -25,7 +25,7 @@ public:
    void clearTree();
    QStandardItemModel *getCurrentModel()const
    {
-       return model;
+       return modelExplore;
 
    }
 
@@ -46,7 +46,7 @@ private:
    QLineEdit *leFileName;
    QToolButton *tbGo;
    QToolButton *tbFind;
-   QStandardItemModel *model;
+   QStandardItemModel *modelExplore;
    QString currentPath;
    QLabel *dirLabel;
 

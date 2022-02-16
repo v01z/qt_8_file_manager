@@ -21,7 +21,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     leFileName{ new QLineEdit(this) },
     tbGo { new QToolButton(this) },
     tbFind { new QToolButton(this) },
-    model { nullptr },
+    modelExplore { nullptr },
     currentPath {},
     dirLabel{ new QLabel(this) }
 
@@ -30,7 +30,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     this->setMinimumSize(parent->minimumSize());
     tabWidgetArea->setMinimumSize(parent->minimumSize());
 
-    //******************* Init Explorer Tab *************************
+    //******************* Init Explorer Tab Area *************************
 
     tabWidgetArea->addTab(tabExplore, "Explore file system");
     tabExplore->setLayout(exploreGridLay);
@@ -41,7 +41,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 
     exploreGridLay->addWidget(lePath,0, 2, 1, 1);
 
-    //Удалим слеш в начале пути
+    //Не дадим юзеру возможность вбивать первым символом слеш
     QRegExpValidator *validator = new QRegExpValidator(QRegExp("^(?!\\/).{0,}$"), this);
     lePath->setValidator(validator);
 
@@ -89,12 +89,11 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
        rebuildModel(rootDir);
     }
 
-    //******************* Init Find Tab ****************************
+    //******************* Init Find Tab Area ****************************
 
     tabWidgetArea->addTab(tabFind, "Find file");
-    //connect(tabWidgetArea, SIGNAL(currentChanged(int)), this, SLOT
-    //connect(tabWidgetArea, QTabWidget::currentChanged(int indx), this, [&indx]() { qDebug() << indx;} );
     connect(tabWidgetArea, SIGNAL(currentChanged(int)), this, SLOT(on_tabWidgetArea_changed(int)));
+
     tabFind->setLayout(findGridLay);
     findGridLay->addWidget(findListView, 2, 0, 10, 10);
 
@@ -133,20 +132,20 @@ void FSExploreWidget::goMainPath()
 }
 
 
-void FSExploreWidget::setNewModel(QStandardItemModel *newmodel)
+void FSExploreWidget::setNewModel(QStandardItemModel *newModelExplore)
 {
-    exploreTreeView->setModel(newmodel);
-    model = newmodel;
+    exploreTreeView->setModel(newModelExplore);
+    modelExplore = newModelExplore;
 }
 
 void FSExploreWidget::rebuildModel(QString str)
 {
-   QStandardItemModel *model = new QStandardItemModel(this);
+   QStandardItemModel *modelExplore = new QStandardItemModel(this);
 
    QList<QStandardItem*> items;
    items.append(new QStandardItem(QIcon(QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon)), str));
 
-   model->appendRow(items);
+   modelExplore->appendRow(items);
 
    //****************** заполнение списка директорий *****************
 
@@ -182,9 +181,9 @@ void FSExploreWidget::rebuildModel(QString str)
    }
 
    items.at(0)->appendRows(files);
-   setNewModel(model);
+   setNewModel(modelExplore);
 
-   model->setHeaderData(0, Qt::Horizontal, "File system tree");
+   modelExplore->setHeaderData(0, Qt::Horizontal, "File system tree");
 }
 
 void FSExploreWidget::goPath()
