@@ -22,7 +22,9 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     modelFind { new QStandardItemModel(this) },
     currentPath {},
     dirLabel{ new QLabel(this) },
-    threadRunner { nullptr }
+    threadRunner { nullptr },
+    showFindResultLabel { new QLabel(this) },
+    countOfFoundItems{}
 
 {
     parent->setMinimumSize(800,600);
@@ -113,6 +115,9 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     findGridLay->addWidget(tbFind, 1, 2, 1, 1);
     tbFind->setText("Find");
     connect(tbFind, SIGNAL(clicked()), this, SLOT(findFile()));
+
+    findGridLay->addWidget(showFindResultLabel, 0, 2, 1, 1);
+    showFindResultLabel->setText("");
 }
 
 void FSExploreWidget::chgDisk(int index)
@@ -246,6 +251,8 @@ void FSExploreWidget::on_tabWidgetArea_changed(int index)
 void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 {
     modelFind->clear();
+    countOfFoundItems = 0;
+    showFindResultLabel->setText("");
 
     threadRunner = QSharedPointer<ThreadRunner>::create(currentPath, fileNameToFind);
 
@@ -278,6 +285,8 @@ void FSExploreWidget::addItemToModelFind(QFileInfo fileInfo)
             ::style()->standardIcon(QStyle::SP_FileIcon)),fileInfo.filePath()));
     }
 
+    showFindResultLabel->setText("Found: " + QString::number(countOfFoundItems++));
+
     modelFind->appendRow(foundItem);
 
 }
@@ -285,6 +294,8 @@ void FSExploreWidget::addItemToModelFind(QFileInfo fileInfo)
 void FSExploreWidget::applyFoundResultToView()
 {
     findListView->setModel(modelFind);
+
+    showFindResultLabel->setText("Search complete. Found: " + QString::number(countOfFoundItems));
 }
 
 ThreadRunner::ThreadRunner(QString &path, QString &name):

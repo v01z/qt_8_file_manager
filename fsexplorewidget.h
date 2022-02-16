@@ -63,6 +63,8 @@ private:
    QString currentPath;
    QLabel *dirLabel;
    QSharedPointer<ThreadRunner> threadRunner;
+   QLabel *showFindResultLabel;
+   size_t countOfFoundItems;
 
 #if defined (__unix__)
    inline static const QString rootDir { '/' };
