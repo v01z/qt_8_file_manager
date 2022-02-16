@@ -22,6 +22,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     tbGo { new QToolButton(this) },
     tbFind { new QToolButton(this) },
     modelExplore { nullptr },
+    modelFind { nullptr },
     currentPath {},
     dirLabel{ new QLabel(this) }
 
@@ -73,7 +74,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 #if !defined(__unix__)
            rootDir = (list.at(0).path());
 #endif
-           rebuildModel(rootDir);
+           rebuildExploreModel(rootDir);
         }
 
        exploreGridLay->addWidget(disckSelBox, 0, 0, 1, 2);
@@ -86,7 +87,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
        exploreGridLay->addWidget(mainPath, 0, 0, 1, 2);
        connect(mainPath, SIGNAL(clicked()), this, SLOT(goMainPath()));
 
-       rebuildModel(rootDir);
+       rebuildExploreModel(rootDir);
     }
 
     //******************* Init Find Tab Area ****************************
@@ -121,24 +122,24 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 void FSExploreWidget::chgDisk(int index)
 {
    QFileInfoList list = QDir::drives();
-   rebuildModel(list.at(index).path());
+   rebuildExploreModel(list.at(index).path());
 }
 
 void FSExploreWidget::goMainPath()
 {
    currentPath = rootDir;
-   rebuildModel(currentPath);
+   rebuildExploreModel(currentPath);
    lePath->clear();
 }
 
 
-void FSExploreWidget::setNewModel(QStandardItemModel *newModelExplore)
+void FSExploreWidget::setNewExploreModel(QStandardItemModel *newModelExplore)
 {
     exploreTreeView->setModel(newModelExplore);
     modelExplore = newModelExplore;
 }
 
-void FSExploreWidget::rebuildModel(QString str)
+void FSExploreWidget::rebuildExploreModel(QString str)
 {
    QStandardItemModel *modelExplore = new QStandardItemModel(this);
 
@@ -181,7 +182,7 @@ void FSExploreWidget::rebuildModel(QString str)
    }
 
    items.at(0)->appendRows(files);
-   setNewModel(modelExplore);
+   setNewExploreModel(modelExplore);
 
    modelExplore->setHeaderData(0, Qt::Horizontal, "File system tree");
 }
@@ -199,12 +200,12 @@ void FSExploreWidget::goPath()
               currentPath.remove(1, 1);
 
     if (QDir(currentPath).exists())
-        rebuildModel(currentPath);
+        rebuildExploreModel(currentPath);
     else
     {
         lePath->clear();
         currentPath = rootDir;
-        rebuildModel(currentPath);
+        rebuildExploreModel(currentPath);
     }
 }
 

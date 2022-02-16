@@ -23,14 +23,16 @@ class FSExploreWidget : public QWidget
 public:
    explicit FSExploreWidget(QWidget *parent = nullptr);
    void clearTree();
-   QStandardItemModel *getCurrentModel()const
+   /*
+   QStandardItemModel *getCurrentExploreModel()const
    {
        return modelExplore;
 
    }
+   */
 
-   void setNewModel(QStandardItemModel *newmodel);
-   void rebuildModel(QString str);
+   void setNewExploreModel(QStandardItemModel*);
+   void rebuildExploreModel(QString);
 private:
    QTabWidget *tabWidgetArea;
    QWidget *tabExplore;
@@ -47,6 +49,7 @@ private:
    QToolButton *tbGo;
    QToolButton *tbFind;
    QStandardItemModel *modelExplore;
+   QStandardItemModel *modelFind;
    QString currentPath;
    QLabel *dirLabel;
 
