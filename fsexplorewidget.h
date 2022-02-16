@@ -33,6 +33,7 @@ public:
 
    void setNewExploreModel(QStandardItemModel*);
    void rebuildExploreModel(QString);
+   void rebuildFindModel(QString);
 private:
    QTabWidget *tabWidgetArea;
    QWidget *tabExplore;

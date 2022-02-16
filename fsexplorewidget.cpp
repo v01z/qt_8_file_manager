@@ -21,8 +21,10 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     leFileName{ new QLineEdit(this) },
     tbGo { new QToolButton(this) },
     tbFind { new QToolButton(this) },
-    modelExplore { nullptr },
-    modelFind { nullptr },
+    //modelExplore { nullptr },
+    modelExplore { new QStandardItemModel(this) },
+    //modelFind { nullptr },
+    modelFind { new QStandardItemModel(this) },
     currentPath {},
     dirLabel{ new QLabel(this) }
 
@@ -141,7 +143,11 @@ void FSExploreWidget::setNewExploreModel(QStandardItemModel *newModelExplore)
 
 void FSExploreWidget::rebuildExploreModel(QString str)
 {
-   QStandardItemModel *modelExplore = new QStandardItemModel(this);
+    modelExplore->clear();
+//   QStandardItemModel *modelExplore = new QStandardItemModel(this);
+//   modelExplore = new QStandardItemModel(this);
+
+
 
    QList<QStandardItem*> items;
    items.append(new QStandardItem(QIcon(QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon)), str));
@@ -225,45 +231,18 @@ void FSExploreWidget::updatePath()
 void FSExploreWidget::findFile()
 {
     if (currentPath.isEmpty())
-            currentPath = rootDir;
+            currentPath = rootDir; //mb we should open first tab
 
-    QDir upperDir { currentPath };
-
-    if (!upperDir.exists())
+    /*
+    if (!(QDir(currentPath)).exists())
             return;
+            */
 
     QString fileNameToFind { leFileName->text() };
     if (fileNameToFind.isEmpty())
         return;
 
-    QFileInfoList hitList;
-    QString tempFileName;
-
-        QDirIterator dirIterator(currentPath, QDirIterator::Subdirectories);
-
-        // Iterate through the directory using the QDirIterator
-        while (dirIterator.hasNext()) {
-            qDebug() << dirIterator.path();
-            tempFileName = dirIterator.next();
-            QFileInfo fileInfo { tempFileName };
-
-            if (fileInfo.isDir()) { // Check if it's a dir
-                continue;
-            }
-
-            // If the filename contains target string - put it in the hitlist
-            if (fileInfo.fileName().contains(fileNameToFind, Qt::CaseInsensitive)) {
-                hitList.append(fileInfo);
-            }
-        }
-
-        foreach (QFileInfo hit, hitList) {
-            qDebug() << hit.absoluteFilePath();
-//            findListView->a
-        }
-
-
-
+    rebuildFindModel(fileNameToFind);
 
 }
 
@@ -299,3 +278,53 @@ void FSExploreWidget::on_lePath_text_changed(QString &str)
    lePath->setText(removeOneSlash(str));
 }
 */
+
+void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
+{
+    modelFind->clear();
+//    QStandardItemModel *modelFind
+    QFileInfoList hitList;
+    QString tempFileName;
+    QList<QStandardItem*> items;
+    QList<QStandardItem*> foundFilesList;
+    QStringList list;
+
+
+    QDirIterator dirIterator(currentPath, QDirIterator::Subdirectories);
+    size_t i{};
+
+    // Iterate through the directory using the QDirIterator
+    while (dirIterator.hasNext())
+    {
+        qDebug() << dirIterator.path();
+        tempFileName = dirIterator.next();
+        QFileInfo fileInfo { tempFileName };
+
+        if (fileInfo.isDir())
+        { // Check if it's a dir
+            continue;
+        }
+
+        // If the filename contains target string - put it in the hitlist
+        if (fileInfo.fileName().contains(fileNameToFind, Qt::CaseInsensitive))
+        {
+            hitList.append(fileInfo);
+            QStandardItem *foundFile
+                { new QStandardItem(QIcon(QApplication
+                    ::style()->standardIcon(QStyle::SP_FileIcon)), list.at(i++))};
+            foundFilesList.append(foundFile);
+        }
+    }
+    items.at(0)->appendRows(foundFilesList);
+    //setnewfindmodel
+    findListView->setModel(modelFind);
+    //
+
+    foreach (QFileInfo hit, hitList) {
+        qDebug() << hit.absoluteFilePath();
+    //            findListView->a
+    }
+
+
+
+}
