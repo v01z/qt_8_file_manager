@@ -17,6 +17,23 @@
 #include <QThread>
 #include <QDirIterator>
 
+
+class ThreadRunner : public QThread
+{
+    Q_OBJECT
+private:
+    QString dirPath;
+    QString fileNameToSearch;
+public:
+    ThreadRunner(QString&, QString&);
+    void run();
+signals:
+    void fileIsFound(QFileInfo);
+    void searchFinished();
+
+};
+
+
 class FSExploreWidget : public QWidget
 {
    Q_OBJECT
@@ -25,10 +42,7 @@ public:
    void clearTree();
    void setNewExploreModel(QStandardItemModel*);
    void rebuildExploreModel(QString);
-   //void rebuildFindModel(QString);
    void rebuildFindModel();
-
-   friend class ThreadRunner;
 
 private:
    QTabWidget *tabWidgetArea;
@@ -49,7 +63,7 @@ private:
    QString currentPath;
    QLabel *dirLabel;
    QString fileNameToFind;
-
+   QSharedPointer<ThreadRunner> threadRunner;
 
 #if defined (__unix__)
    inline static const QString rootDir { '/' };
@@ -65,19 +79,12 @@ private slots:
    void findFile();
    void on_tabWidgetArea_changed(int);
 
+   void printEventFromThread(QFileInfo);
+   void addItemToModelFind(QFileInfo);
+   void applyFoundResultToView();
+
 protected:
 };
 
-class ThreadRunner : public QThread
-{
-private:
-    //FSExploreWidget *fseExploreWidget;
-    FSExploreWidget *outerObj;
-    QString path;
-public:
-    ThreadRunner(FSExploreWidget*, QString&);
-    void run();
-
-};
 
 #endif // FSEXPLOREWIDGET_H
