@@ -25,19 +25,10 @@ public:
    void clearTree();
    void setNewExploreModel(QStandardItemModel*);
    void rebuildExploreModel(QString);
-   void rebuildFindModel(QString);
+   //void rebuildFindModel(QString);
+   void rebuildFindModel();
 
    friend class ThreadRunner;
-
-   class ThreadMaker : public QThread
-   {
-    private:
-        FSExploreWidget *outerObj;
-        QString path;
-    public:
-        ThreadMaker(FSExploreWidget*, QString&);
-        void run();
-   };
 
 private:
    QTabWidget *tabWidgetArea;
@@ -57,6 +48,7 @@ private:
    QStandardItemModel *modelFind;
    QString currentPath;
    QLabel *dirLabel;
+   QString fileNameToFind;
 
 
 #if defined (__unix__)
