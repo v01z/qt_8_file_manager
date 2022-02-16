@@ -3,6 +3,7 @@
 #include <QRegExpValidator>
 #include <QDirIterator>
 #include <QDebug>
+#include <QThread>
 
 
 FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
@@ -245,6 +246,11 @@ void FSExploreWidget::on_tabWidgetArea_changed(int index)
 
 void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 {
+    //----debug
+    QThread *thread = new QThread(this);
+    auto lambda = [](){ qDebug() << "print smth"; }
+
+    //---end debug
     modelFind->clear();
     QString tempFileName;
 
