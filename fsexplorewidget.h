@@ -11,6 +11,8 @@
 #include <QApplication>
 #include <QLineEdit>
 #include <QToolButton>
+#include <QListView>
+#include <QTabWidget>
 
 //Q_PROPERTY(QStandardItemModel *model READ getCurrentModel WRITE setNewModel)
 
@@ -29,8 +31,13 @@ public:
    void setNewModel(QStandardItemModel *newmodel);
    void rebuildModel(QString str);
 private:
-   QGridLayout *gridLay;
-   QTreeView *tree;
+   QTabWidget *tabWidgetArea;
+   QWidget *tabExplore;
+   QWidget *tabFind;
+   QGridLayout *exploreGridLay;
+   QGridLayout *findGridLay;
+   QTreeView *exploreTreeView;
+   QListView *findListView;
    QPushButton *mainPath;
    QComboBox *disckSelBox;
    QLineEdit *lePath;
@@ -50,7 +57,7 @@ private slots:
    void goMainPath();
    void goPath();
    void updatePath();
-   void showFindWindow();
+   void expandFindGUI();
 
 protected:
 };

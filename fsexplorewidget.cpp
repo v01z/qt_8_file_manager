@@ -2,10 +2,17 @@
 #include <QDir>
 #include <QRegExpValidator>
 #include <QDebug>
+// 8
+//#include <QTabWidget> //пока здесь
 
 FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
-    gridLay{ new QGridLayout(this) },
-    tree{ new QTreeView(this) },
+    tabWidgetArea { new QTabWidget(this) },
+    tabExplore { new QWidget(this) },
+    tabFind { new QWidget(this) },
+    exploreGridLay{ new QGridLayout(this) },
+    findGridLay { new QGridLayout(this) },
+    findListView { new QListView(this) },
+    exploreTreeView{ new QTreeView(this) },
     mainPath { nullptr },
     disckSelBox { nullptr },
     lePath { new QLineEdit(this) },
@@ -17,16 +24,21 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 {
     parent->setMinimumSize(500,600);
 
-    this->setLayout(gridLay);
+    this->setMinimumSize(parent->minimumSize());
+    tabWidgetArea->setMinimumSize(parent->minimumSize());
 
-    gridLay->addWidget(tree, 1, 0, 10, 10);
+    tabWidgetArea->addTab(tabExplore, "Explore file system");
+    tabExplore->setLayout(exploreGridLay);
+    exploreGridLay->addWidget(exploreTreeView, 1, 0, 10, 10);
+
+    tabWidgetArea->addTab(tabFind, "Find file");
+    tabFind->setLayout(findGridLay);
+    findGridLay->addWidget(findListView, 0, 0, 10, 10);
 
     //Юзер кликает по дереву каталогов
-    connect(tree, SIGNAL(clicked(QModelIndex)), this, SLOT(updatePath()));
+    connect(exploreTreeView, SIGNAL(clicked(QModelIndex)), this, SLOT(updatePath()));
 
-    setMinimumSize(500, 600);
-
-    gridLay->addWidget(lePath,0, 2, 1, 1);
+    exploreGridLay->addWidget(lePath,0, 2, 1, 1);
 
     //Удалим слеш в начале пути
     QRegExpValidator *validator = new QRegExpValidator(QRegExp("^(?!\\/).{0,}$"), this);
@@ -35,13 +47,18 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     //Юзер нажал 'Enter' в поле LineEdit
     connect(lePath, SIGNAL(returnPressed()), this, SLOT(goPath()));
 
-    gridLay->addWidget(tbGo, 0, 3, 1, 1);
+    exploreGridLay->addWidget(tbGo, 0, 3, 1, 1);
     tbGo->setText("Go");
     connect(tbGo, SIGNAL(clicked()), this, SLOT(goPath()));
 
-    gridLay->addWidget(tbFind, 0, 4, 1, 1);
+    exploreGridLay->addWidget(tbFind, 0, 4, 1, 1);
     tbFind->setText("Find here");
     connect(tbFind, SIGNAL(clicked()), this, SLOT(showFindWindow()));
+
+    /// 8
+//    addTab(this);
+  //  exploreGridLay->addWidget(findListView, 2, 0, 10, 10);
+    ///
 
    if(QSysInfo::productType() == "windows")
    {
@@ -66,14 +83,15 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
            rebuildModel(rootDir);
         }
 
-       gridLay->addWidget(disckSelBox, 0, 0, 1, 2);
+       exploreGridLay->addWidget(disckSelBox, 0, 0, 1, 2);
        connect(disckSelBox, SIGNAL(activated(int)), this, SLOT(chgDisk(int)));
 
    } else
     {
        mainPath = new QPushButton(this);
        mainPath->setText(rootDir);
-       gridLay->addWidget(mainPath, 0, 0, 1, 2);
+       exploreGridLay->addWidget(mainPath, 0, 0, 1, 2);
+       //connect(mainPath, SIGNAL(clicked()), this, SLOT(goMainPath()));
        connect(mainPath, SIGNAL(clicked()), this, SLOT(goMainPath()));
 
        rebuildModel(rootDir);
@@ -96,7 +114,7 @@ void FSExploreWidget::goMainPath()
 
 void FSExploreWidget::setNewModel(QStandardItemModel *newmodel)
 {
-    tree->setModel(newmodel);
+    exploreTreeView->setModel(newmodel);
     model = newmodel;
 }
 
@@ -145,7 +163,7 @@ void FSExploreWidget::rebuildModel(QString str)
    items.at(0)->appendRows(files);
    setNewModel(model);
 
-   model->setHeaderData(0, Qt::Horizontal, "File system tree");
+   model->setHeaderData(0, Qt::Horizontal, "File system exploreTreeView");
 }
 
 void FSExploreWidget::goPath()
@@ -173,9 +191,9 @@ void FSExploreWidget::goPath()
 //Добавляем выделенную юзером диру в LineEdit
 void FSExploreWidget::updatePath()
 {
-    QModelIndex index = tree->currentIndex();
+    QModelIndex index = exploreTreeView->currentIndex();
 
-    QVariant data = tree->model()->data(index);
+    QVariant data = exploreTreeView->model()->data(index);
 
     QString tempPath { currentPath + rootDir + data.toString() };
 
@@ -183,7 +201,7 @@ void FSExploreWidget::updatePath()
         lePath->setText(tempPath);
 }
 
-void FSExploreWidget::showFindWindow()
+void FSExploreWidget::expandFindGUI()
 {
 
 }
