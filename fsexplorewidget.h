@@ -39,6 +39,7 @@ private:
    QGridLayout *findGridLay;
    QTreeView *exploreTreeView;
    QListView *findListView;
+
    QPushButton *mainPath;
    QComboBox *disckSelBox;
    QLineEdit *lePath;

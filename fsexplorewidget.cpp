@@ -239,32 +239,27 @@ void FSExploreWidget::findFile()
     QFileInfoList hitList;
     QString tempFileName;
 
-    qDebug() << "here";
-
         QDirIterator dirIterator(currentPath, QDirIterator::Subdirectories);
 
-        int debug{};
         // Iterate through the directory using the QDirIterator
         while (dirIterator.hasNext()) {
-            //QString filename = it.next();
             qDebug() << dirIterator.path();
-            qDebug() << debug++;
-            //QString filename = dirIterator.next();
             tempFileName = dirIterator.next();
-            QFileInfo file(tempFileName);
+            QFileInfo fileInfo { tempFileName };
 
-            if (file.isDir()) { // Check if it's a dir
+            if (fileInfo.isDir()) { // Check if it's a dir
                 continue;
             }
 
             // If the filename contains target string - put it in the hitlist
-            if (file.fileName().contains(fileNameToFind, Qt::CaseInsensitive)) {
-                hitList.append(file);
+            if (fileInfo.fileName().contains(fileNameToFind, Qt::CaseInsensitive)) {
+                hitList.append(fileInfo);
             }
         }
 
         foreach (QFileInfo hit, hitList) {
             qDebug() << hit.absoluteFilePath();
+//            findListView->a
         }
 
 
