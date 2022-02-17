@@ -25,10 +25,10 @@ private:
     QString fileNameToSearch;
     bool shouldTerminate;
 public:
-    ThreadRunner(QString&, QString&);
+    ThreadRunner(const QString&, const QString&);
     void run();
 signals:
-    void fileIsFound(QFileInfo);
+    void fileIsFound(const QFileInfo&);
     void searchFinished();
 public slots:
    void terminate();
@@ -67,8 +67,9 @@ private:
 
    void clearTree();
    void setNewExploreModel(QStandardItemModel*);
-   void rebuildExploreModel(QString);
-   void rebuildFindModel(QString);
+   void rebuildExploreModel(const QString&);
+   void rebuildFindModel(const QString&);
+   inline void updateFindGUI();
 
 
 #if defined (__unix__)
@@ -85,7 +86,7 @@ private slots:
    void findFile();
    void on_tabWidgetArea_changed(int);
 
-   void addItemToModelFind(QFileInfo);
+   void addItemToModelFind(const QFileInfo&);
    void applyFoundResultToView();
 
 signals:

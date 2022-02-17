@@ -140,7 +140,7 @@ void FSExploreWidget::setNewExploreModel(QStandardItemModel *newModelExplore)
     modelExplore = newModelExplore;
 }
 
-void FSExploreWidget::rebuildExploreModel(QString str)
+void FSExploreWidget::rebuildExploreModel(const QString &str)
 {
    modelExplore->clear();
 
@@ -227,11 +227,10 @@ void FSExploreWidget::findFile()
 {
     if (searchInProgress)
     {
-        tbFind->setText("Press to start searching");
 
         emit terminateChildThread();
 
-        searchInProgress = false;
+        updateFindGUI();
 
         return;
     }
@@ -255,10 +254,17 @@ void FSExploreWidget::on_tabWidgetArea_changed(int index)
 
         dirLabel->setText(currentPath);
 
+        //Здесь не успел реализовать момент, когда во вкладке 'Find' ещё
+        //продолжается процесс поиска, а мы уже успели сменить текущую
+        //директорию (currentPath). На работающий поиск это, конечно, не
+        //влияет, но юзер может может оказаться в некотором затруднении.
+        //P.S. коммент добавил уже во время вебинара №8. В общем, в будущем
+        //постараюсь исправить.
+
     }
 }
 
-void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
+void FSExploreWidget::rebuildFindModel(const QString &fileNameToFind)
 {
     modelFind->clear();
     countOfFoundItems = 0;
@@ -266,8 +272,8 @@ void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 
     threadRunner = QSharedPointer<ThreadRunner>::create(currentPath, fileNameToFind);
 
-    connect(threadRunner.get(), SIGNAL(fileIsFound(QFileInfo)), this, SLOT(addItemToModelFind(QFileInfo)),
-            Qt::DirectConnection);
+    connect(threadRunner.get(), SIGNAL(fileIsFound(const QFileInfo&)), this,
+            SLOT(addItemToModelFind(const QFileInfo&)), Qt::DirectConnection);
 
     connect(threadRunner.get(), SIGNAL(searchFinished()), this, SLOT(applyFoundResultToView()));
 
@@ -278,7 +284,8 @@ void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 
     threadRunner->start();
 
-    //Без этого threadRunner не хотел получать сигнал terminateChildThread()
+    //Без этого threadRunner игнорировал сигнал terminateChildThread().
+    //"ЛоуПриорити" выбрал, чтоб наверняка, другие варианты не успел потестить.
     threadRunner->setPriority(QThread::LowPriority);
 
     tbFind->setText("Press to stop");
@@ -287,7 +294,7 @@ void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 
 }
 
-void FSExploreWidget::addItemToModelFind(QFileInfo fileInfo)
+void FSExploreWidget::addItemToModelFind(const QFileInfo &fileInfo)
 {
     QStandardItem *foundItem;
 
@@ -316,6 +323,8 @@ void FSExploreWidget::applyFoundResultToView()
     findListView->setModel(modelFind);
 
     showFindResultLabel->setText("Search complete. Found: " + QString::number(countOfFoundItems));
+
+    updateFindGUI();
 }
 
 FSExploreWidget::~FSExploreWidget()
@@ -331,7 +340,13 @@ FSExploreWidget::~FSExploreWidget()
    threadRunner.reset();
 }
 
-ThreadRunner::ThreadRunner(QString &path, QString &name):
+inline void FSExploreWidget::updateFindGUI()
+{
+    searchInProgress = false;
+    tbFind->setText("Press to start searching");
+}
+
+ThreadRunner::ThreadRunner(const QString &path, const QString &name):
     dirPath { path }, fileNameToSearch { name }, shouldTerminate { false }
 {}
 
