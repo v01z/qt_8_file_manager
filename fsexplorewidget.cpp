@@ -3,8 +3,6 @@
 #include <QRegExpValidator>
 #include <QDebug>
 
-//bool searchInProgress;
-
 FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     tabWidgetArea { new QTabWidget(this) },
     tabExplore { new QWidget(this) },
@@ -120,8 +118,6 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 
     findGridLay->addWidget(showFindResultLabel, 0, 2, 1, 1);
     showFindResultLabel->setText("");
-
-    //searchInProgress = false;
 }
 
 void FSExploreWidget::changeDisk(int index)
@@ -275,23 +271,20 @@ void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 
     connect(threadRunner.get(), SIGNAL(searchFinished()), this, SLOT(applyFoundResultToView()));
 
-    //connect(this, SIGNAL(terminateChildThread()), threadRunner.get(), SLOT(terminate()));
-    connect(this, SIGNAL(terminateChildThread()), threadRunner.get(), SLOT(terminate()), Qt::DirectConnection);
-
-
+    connect(this, SIGNAL(terminateChildThread()), threadRunner.get(), SLOT(terminate()));
 
 
     searchInProgress = true;
 
     threadRunner->start();
 
-    qDebug() << "Thread starts";
+    //Без этого threadRunner не хотел получать сигнал terminateChildThread()
+    threadRunner->setPriority(QThread::LowPriority);
 
     tbFind->setText("Press to stop");
 
     qDebug() << "Caller thread ID: " << thread()->currentThreadId();
 
-    //findListView->setModel(modelFind);
 }
 
 void FSExploreWidget::addItemToModelFind(QFileInfo fileInfo)
@@ -325,36 +318,27 @@ void FSExploreWidget::applyFoundResultToView()
     showFindResultLabel->setText("Search complete. Found: " + QString::number(countOfFoundItems));
 }
 
+FSExploreWidget::~FSExploreWidget()
+{
+   if (threadRunner.get()->isRunning())
+   {
+       emit terminateChildThread();
+
+       threadRunner.get()->terminate();
+   }
+   threadRunner.reset();
+}
+
 ThreadRunner::ThreadRunner(QString &path, QString &name):
     dirPath { path }, fileNameToSearch { name }, shouldTerminate { false }
 {}
 
 void ThreadRunner::run()
 {
-
     QDirIterator dirIterator(dirPath, QDirIterator::Subdirectories);
 
-    //while (dirIterator.hasNext())
-    while ((dirIterator.hasNext()) && (shouldTerminate == false))
+    while ((shouldTerminate == false) && (dirIterator.hasNext()))
     {
-        qDebug() << "child thread thinks that shouldTerminate is: " << shouldTerminate;
-        /*
-        if (!searchInProgress)
-        {
-            //stop thread
-//            this->thread()->terminate();
- //           this->thread()->currentThread()->terminate();
-//            this->thread()->
-            break;
-        }
-        */
-        /*
-        if (shouldTerminate)
-        {
-            break;
-        }
-        */
-
         QFileInfo fileInfo { dirIterator.next() };
 
         if (fileInfo.fileName().contains(fileNameToSearch, Qt::CaseInsensitive))
@@ -371,4 +355,5 @@ void ThreadRunner::run()
 void ThreadRunner::terminate()
 {
     shouldTerminate = true;
+    qDebug() << "\n\n******TERMINATE HAS BEEN CALLED***\n\n*****************************\n\n";
 }

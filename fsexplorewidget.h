@@ -17,9 +17,6 @@
 #include <QThread>
 #include <QDirIterator>
 
-
-//extern bool searchInProgress;
-
 class ThreadRunner : public QThread
 {
     Q_OBJECT
@@ -43,10 +40,7 @@ class FSExploreWidget : public QWidget
    Q_OBJECT
 public:
    explicit FSExploreWidget(QWidget *parent = nullptr);
-   void clearTree();
-   void setNewExploreModel(QStandardItemModel*);
-   void rebuildExploreModel(QString);
-   void rebuildFindModel(QString);
+   ~FSExploreWidget();
 
 private:
    QTabWidget *tabWidgetArea;
@@ -71,6 +65,12 @@ private:
    size_t countOfFoundItems;
    bool searchInProgress;
 
+   void clearTree();
+   void setNewExploreModel(QStandardItemModel*);
+   void rebuildExploreModel(QString);
+   void rebuildFindModel(QString);
+
+
 #if defined (__unix__)
    inline static const QString rootDir { '/' };
 #elif
@@ -87,8 +87,6 @@ private slots:
 
    void addItemToModelFind(QFileInfo);
    void applyFoundResultToView();
-
-//protected:
 
 signals:
    void terminateChildThread();
