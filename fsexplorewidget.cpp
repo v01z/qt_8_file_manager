@@ -324,7 +324,9 @@ FSExploreWidget::~FSExploreWidget()
    {
        emit terminateChildThread();
 
-       threadRunner.get()->terminate();
+       threadRunner->wait();
+
+//       threadRunner.get()->terminate();
    }
    threadRunner.reset();
 }
