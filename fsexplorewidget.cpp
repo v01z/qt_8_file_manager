@@ -3,6 +3,7 @@
 #include <QRegExpValidator>
 #include <QDebug>
 
+//bool searchInProgress;
 
 FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     tabWidgetArea { new QTabWidget(this) },
@@ -24,7 +25,8 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
     dirLabel{ new QLabel(this) },
     threadRunner { nullptr },
     showFindResultLabel { new QLabel(this) },
-    countOfFoundItems{}
+    countOfFoundItems{},
+    searchInProgress { false }
 
 {
     parent->setMinimumSize(800,600);
@@ -77,7 +79,7 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
         }
 
        exploreGridLay->addWidget(disckSelBox, 0, 0, 1, 2);
-       connect(disckSelBox, SIGNAL(activated(int)), this, SLOT(chgDisk(int)));
+       connect(disckSelBox, SIGNAL(activated(int)), this, SLOT(changeDisk(int)));
 
    } else
     {
@@ -118,9 +120,11 @@ FSExploreWidget::FSExploreWidget(QWidget *parent) : QWidget{ parent },
 
     findGridLay->addWidget(showFindResultLabel, 0, 2, 1, 1);
     showFindResultLabel->setText("");
+
+    //searchInProgress = false;
 }
 
-void FSExploreWidget::chgDisk(int index)
+void FSExploreWidget::changeDisk(int index)
 {
    QFileInfoList list = QDir::drives();
    rebuildExploreModel(list.at(index).path());
@@ -225,6 +229,17 @@ void FSExploreWidget::updatePath()
 
 void FSExploreWidget::findFile()
 {
+    if (searchInProgress)
+    {
+        tbFind->setText("Press to start searching");
+
+        emit terminateChildThread();
+
+        searchInProgress = false;
+
+        return;
+    }
+
     if (currentPath.isEmpty())
             currentPath = rootDir;
 
@@ -233,7 +248,6 @@ void FSExploreWidget::findFile()
         return;
 
     rebuildFindModel(fileNameToFind);
-
 }
 
 void FSExploreWidget::on_tabWidgetArea_changed(int index)
@@ -261,11 +275,23 @@ void FSExploreWidget::rebuildFindModel(QString fileNameToFind)
 
     connect(threadRunner.get(), SIGNAL(searchFinished()), this, SLOT(applyFoundResultToView()));
 
+    //connect(this, SIGNAL(terminateChildThread()), threadRunner.get(), SLOT(terminate()));
+    connect(this, SIGNAL(terminateChildThread()), threadRunner.get(), SLOT(terminate()), Qt::DirectConnection);
+
+
+
+
+    searchInProgress = true;
 
     threadRunner->start();
-    qDebug() << "Hello from outer " << thread()->currentThreadId();
 
-    findListView->setModel(modelFind);
+    qDebug() << "Thread starts";
+
+    tbFind->setText("Press to stop");
+
+    qDebug() << "Caller thread ID: " << thread()->currentThreadId();
+
+    //findListView->setModel(modelFind);
 }
 
 void FSExploreWidget::addItemToModelFind(QFileInfo fileInfo)
@@ -285,7 +311,8 @@ void FSExploreWidget::addItemToModelFind(QFileInfo fileInfo)
             ::style()->standardIcon(QStyle::SP_FileIcon)),fileInfo.filePath()));
     }
 
-    showFindResultLabel->setText("Found: " + QString::number(countOfFoundItems++));
+    showFindResultLabel->setText("Found: " +
+        QString::number(countOfFoundItems++) + " . Search in progress..");
 
     modelFind->appendRow(foundItem);
 
@@ -299,15 +326,34 @@ void FSExploreWidget::applyFoundResultToView()
 }
 
 ThreadRunner::ThreadRunner(QString &path, QString &name):
-    dirPath { path }, fileNameToSearch { name } {}
+    dirPath { path }, fileNameToSearch { name }, shouldTerminate { false }
+{}
 
 void ThreadRunner::run()
 {
 
     QDirIterator dirIterator(dirPath, QDirIterator::Subdirectories);
 
-    while (dirIterator.hasNext())
+    //while (dirIterator.hasNext())
+    while ((dirIterator.hasNext()) && (shouldTerminate == false))
     {
+        qDebug() << "child thread thinks that shouldTerminate is: " << shouldTerminate;
+        /*
+        if (!searchInProgress)
+        {
+            //stop thread
+//            this->thread()->terminate();
+ //           this->thread()->currentThread()->terminate();
+//            this->thread()->
+            break;
+        }
+        */
+        /*
+        if (shouldTerminate)
+        {
+            break;
+        }
+        */
 
         QFileInfo fileInfo { dirIterator.next() };
 
@@ -319,5 +365,10 @@ void ThreadRunner::run()
     }
     emit searchFinished();
 
-    qDebug() << "Hello from inner" << thread()->currentThreadId();
+    qDebug() << "Finished child thread ID: " << thread()->currentThreadId();
+}
+
+void ThreadRunner::terminate()
+{
+    shouldTerminate = true;
 }

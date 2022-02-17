@@ -18,19 +18,23 @@
 #include <QDirIterator>
 
 
+//extern bool searchInProgress;
+
 class ThreadRunner : public QThread
 {
     Q_OBJECT
 private:
     QString dirPath;
     QString fileNameToSearch;
+    bool shouldTerminate;
 public:
     ThreadRunner(QString&, QString&);
     void run();
 signals:
     void fileIsFound(QFileInfo);
     void searchFinished();
-
+public slots:
+   void terminate();
 };
 
 
@@ -65,6 +69,7 @@ private:
    QSharedPointer<ThreadRunner> threadRunner;
    QLabel *showFindResultLabel;
    size_t countOfFoundItems;
+   bool searchInProgress;
 
 #if defined (__unix__)
    inline static const QString rootDir { '/' };
@@ -73,7 +78,7 @@ private:
 #endif //unix
 
 private slots:
-   void chgDisk(int index);
+   void changeDisk(int index);
    void goMainPath();
    void goPath();
    void updatePath();
@@ -83,7 +88,11 @@ private slots:
    void addItemToModelFind(QFileInfo);
    void applyFoundResultToView();
 
-protected:
+//protected:
+
+signals:
+   void terminateChildThread();
+
 };
 
 
